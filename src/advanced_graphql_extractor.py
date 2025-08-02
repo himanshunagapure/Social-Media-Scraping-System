@@ -18,8 +18,8 @@ from src.browser_manager import BrowserManager
 class AdvancedGraphQLExtractor:
     """Advanced GraphQL extractor with network request capture"""
     
-    def __init__(self, headless: bool = True):
-        self.browser_manager = BrowserManager(headless=headless)
+    def __init__(self, headless: bool = True, enable_anti_detection: bool = True, is_mobile: bool = False):
+        self.browser_manager = BrowserManager(headless=headless, enable_anti_detection=enable_anti_detection, is_mobile=is_mobile)
         self.network_requests = []
         self.graphql_responses = {}
         
@@ -261,6 +261,29 @@ class AdvancedGraphQLExtractor:
                     })
                     print(f"✅ Extracted user data for: {user_data.get('username')}")
                     break
+        
+        # Fallback: Look for user data in GraphQL responses if API response failed
+        if not user_data.get('username'):
+            for url, response in getattr(self, 'graphql_responses', {}).items():
+                if 'data' in response and 'user' in response.get('data', {}):
+                    user_info = response.get('data', {}).get('user', {})
+                    if user_info and user_info.get('username'):
+                        user_data.update({
+                            'username': user_info.get('username'),
+                            'full_name': user_info.get('full_name'),
+                            'biography': user_info.get('biography'),
+                            'is_private': user_info.get('is_private'),
+                            'is_verified': user_info.get('is_verified'),
+                            'is_business_account': user_info.get('is_business_account'),
+                            'followers_count': user_info.get('edge_followed_by', {}).get('count'),
+                            'following_count': user_info.get('edge_follow', {}).get('count'),
+                            'posts_count': user_info.get('edge_owner_to_timeline_media', {}).get('count'),
+                            'user_id': user_info.get('id'),
+                            'is_professional_account': user_info.get('is_professional_account'),
+                            'bio_links': user_info.get('bio_links', [])
+                        })
+                        print(f"✅ Extracted user data from GraphQL for: {user_data.get('username')}")
+                        break
         
         return user_data
     
@@ -549,6 +572,21 @@ class AdvancedGraphQLExtractor:
         """Extract reel data"""
         url = f"https://www.instagram.com/reel/{reel_id}/"
         return await self.extract_graphql_data(url)
+    
+    async def get_stealth_report(self) -> Dict[str, Any]:
+        """Get comprehensive stealth report from browser manager"""
+        return await self.browser_manager.get_stealth_report()
+    
+    async def execute_human_behavior(self, behavior_type: str, **kwargs) -> None:
+        """Execute human-like behavior on the page"""
+        if behavior_type == 'scroll':
+            await self.browser_manager.execute_human_scroll(**kwargs)
+        elif behavior_type == 'mousemove':
+            await self.browser_manager.execute_human_mouse_move(**kwargs)
+        elif behavior_type == 'click':
+            await self.browser_manager.execute_human_click(**kwargs)
+        else:
+            raise ValueError(f"Unknown behavior type: {behavior_type}")
 
     async def save_scraped_data_to_json(self, profile_data: Dict[str, Any], post_data: Dict[str, Any], reel_data: Dict[str, Any], filename: str = "scraped_data.json") -> None:
         """Save all scraped data to a structured JSON file"""
@@ -785,7 +823,16 @@ class AdvancedGraphQLExtractor:
         
         # Process profile data
         if profile_data and not profile_data.get('error'):
-            profile_url = f"https://www.instagram.com/{profile_data.get('user_data', {}).get('username', 'unknown')}/"
+            # Extract username from user_data or fallback to URL extraction
+            username = profile_data.get('user_data', {}).get('username')
+            if not username and profile_data.get('url'):
+                # Fallback: extract username from the original URL
+                import re
+                url_match = re.search(r'instagram\.com/([^/?]+)', profile_data.get('url'))
+                if url_match:
+                    username = url_match.group(1)
+            
+            profile_url = f"https://www.instagram.com/{username or 'unknown'}/"
             content_type = "profile"
             
             profile_entry = {
@@ -1045,16 +1092,38 @@ class AdvancedGraphQLExtractor:
 
 
 async def test_advanced_graphql_extractor():
-    """Test the advanced GraphQL extractor"""
+    """Test the advanced GraphQL extractor with anti-detection features"""
     print("=" * 80)
-    print("TESTING ADVANCED GRAPHQL EXTRACTOR")
+    print("TESTING ADVANCED GRAPHQL EXTRACTOR WITH ANTI-DETECTION")
     print("=" * 80)
     
-    extractor = AdvancedGraphQLExtractor(headless=False)  # Set to False to see what's happening
+    extractor = AdvancedGraphQLExtractor(headless=False, enable_anti_detection=True)  # Enable anti-detection
     
     try:
         await extractor.start()
         print("✓ Advanced GraphQL extractor started successfully")
+        
+        # Test anti-detection features
+        print("\n" + "=" * 60)
+        print("ANTI-DETECTION FEATURES TEST")
+        print("=" * 60)
+        
+        stealth_report = await extractor.get_stealth_report()
+        print("✓ Stealth report generated:")
+        print(f"  - Fingerprint Evasion: {stealth_report.get('fingerprint_evasion', {}).get('enabled', False)}")
+        print(f"  - Behavioral Mimicking: {stealth_report.get('behavioral_mimicking', {}).get('enabled', False)}")
+        print(f"  - Network Obfuscation: {stealth_report.get('network_obfuscation', {}).get('enabled', False)}")
+        
+        # Test human-like behavior
+        print("\nTesting human-like behavior...")
+        await extractor.execute_human_behavior('scroll', target_position=500, current_position=0)
+        print("✓ Human-like scroll executed")
+        
+        await extractor.execute_human_behavior('mousemove', x=400, y=300)
+        print("✓ Human-like mouse movement executed")
+        
+        await extractor.execute_human_behavior('click', x=200, y=150)
+        print("✓ Human-like click executed")
         
         # Test 1: Extract user profile data
         print("\n" + "=" * 60)

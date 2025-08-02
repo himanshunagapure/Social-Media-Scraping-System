@@ -1,6 +1,6 @@
 """
-Browser Manager - Task 1: Basic Infrastructure
-Handles browser automation with basic stealth configuration
+Browser Manager - Task 1: Basic Infrastructure with Anti-Detection
+Handles browser automation with comprehensive stealth configuration
 """
 
 import asyncio
@@ -9,62 +9,79 @@ import time
 from typing import Optional, Dict, Any
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 from fake_useragent import UserAgent
+from src.anti_detection import AntiDetectionManager, create_stealth_browser_context, execute_human_behavior
 
 
 class BrowserManager:
-    """Manages browser automation with basic stealth features"""
+    """Manages browser automation with comprehensive anti-detection features"""
     
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = True, enable_anti_detection: bool = True, is_mobile: bool = False):
         self.headless = headless
+        self.enable_anti_detection = enable_anti_detection
+        self.is_mobile = is_mobile
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.ua = UserAgent()
         
+        # Initialize anti-detection manager
+        if self.enable_anti_detection:
+            self.anti_detection = AntiDetectionManager(
+                enable_fingerprint_evasion=True,
+                enable_behavioral_mimicking=True,
+                enable_network_obfuscation=True
+            )
+        else:
+            self.anti_detection = None
+        
     async def start(self) -> None:
-        """Initialize browser with stealth configuration"""
+        """Initialize browser with comprehensive anti-detection configuration"""
         self.playwright = await async_playwright().start()
         
-        # Basic stealth configuration
-        browser_args = [
-            '--no-sandbox',
-            '--disable-blink-features=AutomationControlled',
-            '--disable-dev-shm-usage',
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            '--disable-extensions',
-            '--disable-plugins',
-            '--disable-images',  # Speed up loading
-            #--disable-javascript',  # We'll enable it selectively
-        ]
-        
-        self.browser = await self.playwright.chromium.launch(
-            headless=self.headless,
-            args=browser_args
-        )
-        
-        # Create context with stealth settings
-        self.context = await self.browser.new_context(
-            user_agent=self.ua.random,
-            viewport={'width': 1920, 'height': 1080},
-            locale='en-US',
-            timezone_id='America/New_York',
-        )
-        
-        # Add stealth scripts
-        await self.context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined,
-            });
+        if self.enable_anti_detection and self.anti_detection:
+            # Use advanced anti-detection configuration
+            self.browser, self.context = await create_stealth_browser_context(
+                self.playwright, self.anti_detection, is_mobile=self.is_mobile
+            )
+        else:
+            # Fallback to basic stealth configuration
+            browser_args = [
+                '--no-sandbox',
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-images',
+            ]
             
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3, 4, 5],
-            });
+            self.browser = await self.playwright.chromium.launch(
+                headless=self.headless,
+                args=browser_args
+            )
             
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en'],
-            });
-        """)
+            self.context = await self.browser.new_context(
+                user_agent=self.ua.random,
+                viewport={'width': 1920, 'height': 1080},
+                locale='en-US',
+                timezone_id='America/New_York',
+            )
+            
+            # Add basic stealth scripts
+            await self.context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                });
+                
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5],
+                });
+                
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['en-US', 'en'],
+                });
+            """)
         
         self.page = await self.context.new_page()
         
@@ -90,14 +107,24 @@ class BrowserManager:
             await self.playwright.stop()
             
     async def navigate_to(self, url: str, wait_time: int = 3) -> None:
-        """Navigate to URL with human-like delays"""
+        """Navigate to URL with human-like delays and anti-detection measures"""
         if not self.page:
             raise RuntimeError("Browser not started. Call start() first.")
-            
-        # Random delay to mimic human behavior
-        await asyncio.sleep(random.uniform(1, 3))
+        
+        # Apply network obfuscation delay
+        if self.enable_anti_detection and self.anti_detection:
+            delay = await self.anti_detection.calculate_request_delay()
+            await asyncio.sleep(delay)
+        else:
+            # Random delay to mimic human behavior
+            await asyncio.sleep(random.uniform(1, 3))
         
         await self.page.goto(url, wait_until='domcontentloaded')
+        
+        # Update request count for anti-detection tracking
+        if self.enable_anti_detection and self.anti_detection:
+            self.anti_detection.request_count += 1
+            self.anti_detection.last_request_time = time.time()
         
         # Wait for page to load
         await asyncio.sleep(wait_time)
@@ -402,6 +429,71 @@ class BrowserManager:
         if not self.page:
             raise RuntimeError("Browser not started. Call start() first.")
         await self.page.screenshot(path=path, full_page=True)
+    
+    async def execute_human_scroll(self, target_position: int, current_position: int = None) -> None:
+        """Execute human-like scrolling behavior"""
+        if not self.page:
+            raise RuntimeError("Browser not started. Call start() first.")
+        
+        if current_position is None:
+            current_position = await self.page.evaluate("window.pageYOffset")
+        
+        if self.enable_anti_detection and self.anti_detection:
+            await execute_human_behavior(
+                self.page, 
+                self.anti_detection, 
+                'scroll', 
+                position=target_position, 
+                current_position=current_position
+            )
+        else:
+            # Simple scroll without anti-detection
+            await self.page.evaluate(f"window.scrollTo(0, {target_position})")
+            await asyncio.sleep(random.uniform(0.5, 1.5))
+    
+    async def execute_human_mouse_move(self, x: int, y: int) -> None:
+        """Execute human-like mouse movement"""
+        if not self.page:
+            raise RuntimeError("Browser not started. Call start() first.")
+        
+        if self.enable_anti_detection and self.anti_detection:
+            await execute_human_behavior(
+                self.page, 
+                self.anti_detection, 
+                'mousemove', 
+                position=(x, y)
+            )
+        else:
+            # Simple mouse movement without anti-detection
+            await self.page.mouse.move(x, y)
+            await asyncio.sleep(random.uniform(0.1, 0.3))
+    
+    async def execute_human_click(self, x: int, y: int) -> None:
+        """Execute human-like click behavior"""
+        if not self.page:
+            raise RuntimeError("Browser not started. Call start() first.")
+        
+        if self.enable_anti_detection and self.anti_detection:
+            await execute_human_behavior(
+                self.page, 
+                self.anti_detection, 
+                'click', 
+                position=(x, y)
+            )
+        else:
+            # Simple click without anti-detection
+            await self.page.mouse.click(x, y)
+            await asyncio.sleep(random.uniform(0.2, 0.5))
+    
+    async def get_stealth_report(self) -> Dict[str, Any]:
+        """Get comprehensive stealth report"""
+        if self.enable_anti_detection and self.anti_detection:
+            return await self.anti_detection.get_stealth_report()
+        else:
+            return {
+                'anti_detection_enabled': False,
+                'message': 'Anti-detection features are disabled'
+            }
 
 
 async def test_browser_manager():
