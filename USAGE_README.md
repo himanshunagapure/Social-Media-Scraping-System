@@ -94,13 +94,15 @@ The scraper returns a dictionary with the following structure:
         }
     ],
     'summary': {     # Summary statistics
-        'total_urls': 2,
-        'successful_extractions': 2,
+        'total_original_urls': 2,
+        'additional_profiles_extracted': 1,
+        'total_extractions': 3,
+        'successful_extractions': 3,
         'failed_extractions': 0,
         'success_rate': 100.0,
         'total_time_seconds': 15.5,
         'average_time_per_url': 7.75,
-        'content_type_breakdown': {'profile': 1, 'article': 1}
+        'content_type_breakdown': {'profile': 2, 'article': 1}
     },
     'errors': [],    # List of any errors encountered
     'output_file': 'results.json',  # Path to saved file (if specified)
@@ -187,7 +189,9 @@ async def main():
         output_file="batch_results.json"
     )
     
-    print(f"Processed {result['summary']['total_urls']} URLs")
+    print(f"Processed {result['summary']['total_original_urls']} URLs")
+    print(f"Additional profiles extracted: {result['summary']['additional_profiles_extracted']}")
+    print(f"Total extractions: {result['summary']['total_extractions']}")
     print(f"Success rate: {result['summary']['success_rate']:.1f}%")
 
 asyncio.run(main())

@@ -1,228 +1,333 @@
-# Instagram Data Scraper - Advanced Anti-Detection System
+# Instagram Scraper
 
-A sophisticated Instagram data extraction tool with comprehensive anti-detection measures, advanced network monitoring, and stealth browser automation. This system uses cutting-edge techniques to extract GraphQL data from Instagram profiles, posts, and reels while evading detection mechanisms.
+A powerful, Instagram data extraction tool with comprehensive anti-detection measures, advanced network monitoring, and stealth browser automation. This system uses cutting-edge techniques to extract GraphQL data from Instagram profiles, posts, and reels while evading detection mechanisms.
 
-## 🚀 Advanced Features
+## 🚀 Features
 
-### 🔒 Anti-Detection System
-- **Fingerprint Evasion**: Advanced browser fingerprint randomization
-- **Behavioral Mimicking**: Human-like scrolling, mouse movements, and interactions
-- **Network Obfuscation**: Request spacing, jitter, and backoff strategies
+### Core Functionality
+- **Multi-Content Support**: Extract data from profiles, posts, and reels
+- **Anti-Detection System**: Advanced fingerprint evasion and behavioral mimicking
+- **Network Monitoring**: Captures GraphQL and API requests for comprehensive data extraction
+- **Clean Data Output**: Structured JSON output with formatted counts and business information
+- **Batch Processing**: Process multiple URLs efficiently with error handling
+- **Mobile Support**: Optional mobile user agent and viewport simulation
+
+### Anti-Detection Features
+- **Fingerprint Evasion**: Canvas, WebGL, audio, timezone, locale, screen, plugins, fonts, and hardware fingerprint randomization
+- **Behavioral Mimicking**: Human-like scrolling, mouse movements, and click patterns
+- **Network Obfuscation**: Request spacing, jitter, and connection pooling
+- **Stealth Headers**: Realistic browser headers and user agents
+- **Popup Handling**: Automatic Instagram popup detection and closure
 - **Hardware Correlation**: Realistic hardware profiles with geographic logic
 - **Mobile & Desktop Support**: Optimized for both mobile and desktop environments
 
-### 🌐 Network Intelligence
-- **Real-time GraphQL Monitoring**: Captures and processes GraphQL requests/responses
-- **API Response Analysis**: Extracts data from Instagram's web_profile_info API
-- **Multi-Source Data Extraction**: Meta tags, scripts, network responses, and page content
-- **Compression Handling**: Supports zstd and gzip compressed responses
+### Data Extraction Capabilities
+- **Profile Data**: Username, full name, followers, following, biography, verification status, business information
+- **Post Data**: Caption, likes, comments, author, post date, media URLs
+- **Reel Data**: Video information, views, duration, thumbnail URLs
+- **Business Information**: Email, phone, category, professional account status
+- **Network Analysis**: Request/response monitoring and GraphQL data capture
 
-### 🎯 Data Extraction Capabilities
-- **Profile Data**: Username, bio, followers, following, business info, verification status
-- **Post Data**: Captions, likes, comments, media URLs, timestamps
-- **Reel Data**: Video URLs, view counts, duration, engagement metrics
-- **Business Intelligence**: Email, phone, category, professional account status
+## 📋 Table of Contents
 
-### 🛡️ Stealth Features
-- **WebDriver Masking**: Removes automation indicators
-- **Canvas Fingerprint Randomization**: Prevents canvas-based tracking
-- **WebGL Fingerprint Evasion**: Randomizes graphics card information
-- **Plugin Simulation**: Creates realistic browser plugin arrays
-- **Timezone & Locale Matching**: Geographic consistency
-
-## 📋 Prerequisites
-
-- Python 3.8+
-- Playwright browser automation
-- Required Python packages (see Installation section)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage Examples](#usage-examples)
+- [API Reference](#api-reference)
+- [Configuration](#configuration)
+- [Anti-Detection System](#anti-detection-system)
+- [Data Output Format](#data-output-format)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## 🛠️ Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd insta-scraper
-   ```
+### Prerequisites
+- Python 3.8+
+- pip
+- Git
 
-2. **Create and activate virtual environment**:
-   ```bash
-   python -m venv insta-venv
-   # On Windows
-   insta-venv\Scripts\activate
-   # On macOS/Linux
-   source insta-venv/bin/activate
-   ```
+### Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd insta-scraper
 
-3. **Install dependencies**:
-   ```bash
-   pip install playwright beautifulsoup4 fake-useragent aiohttp zstandard
-   ```
+# Create virtual environment
+python -m venv insta-venv
+source insta-venv/bin/activate  # On Windows: insta-venv\Scripts\activate
 
-4. **Install Playwright browsers**:
-   ```bash
-   playwright install chromium
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-## 🏗️ Advanced Architecture
+# Install Playwright browsers
+playwright install chromium
+```
 
-The system consists of three core components working together:
+### Dependencies
+The scraper uses the following key dependencies:
+- `playwright`: Browser automation
+- `beautifulsoup4`: HTML parsing
+- `fake-useragent`: User agent generation
+- `asyncio`: Asynchronous programming
+- `json`: Data serialization
 
-### 1. Anti-Detection Manager (`src/anti_detection.py`)
-- **Purpose**: Comprehensive stealth and evasion system
-- **Key Features**:
-  - Fingerprint randomization with hardware correlation
-  - Human behavior simulation (scrolling, mouse movements)
-  - Network request obfuscation and timing
-  - Geographic logic for timezone/locale matching
-  - Stealth script generation and injection
+## 🚀 Quick Start
 
-### 2. Browser Manager (`src/browser_manager.py`)
-- **Purpose**: Advanced browser automation with anti-detection integration
-- **Key Features**:
-  - Stealth browser context creation
-  - Instagram popup handling and navigation
-  - Human-like behavior execution
-  - Screenshot and debugging capabilities
-  - Network monitoring setup
-
-### 3. Advanced GraphQL Extractor (`src/advanced_graphql_extractor.py`)
-- **Purpose**: Intelligent data extraction with multi-source analysis
-- **Key Features**:
-  - Real-time network request/response capture
-  - GraphQL and API data extraction
-  - Multi-method data parsing (meta tags, scripts, API responses)
-  - Clean data formatting and export
-  - Success indicators and missing data analysis
-
-## 📖 Usage
-
-### Basic Usage with Anti-Detection
-
+### Basic Usage
 ```python
 import asyncio
-from src.advanced_graphql_extractor import AdvancedGraphQLExtractor
+from main import scrape_instagram_urls
 
 async def main():
-    # Initialize extractor with anti-detection
-    extractor = AdvancedGraphQLExtractor(
-        headless=True,
-        enable_anti_detection=True,
-        is_mobile=False  # Set to True for mobile mode
-    )
+    urls = [
+        "https://www.instagram.com/username/",
+        "https://www.instagram.com/p/post_id/",
+        "https://www.instagram.com/reel/reel_id/"
+    ]
     
-    try:
-        # Start the extractor
-        await extractor.start()
-        
-        # Get stealth report
-        stealth_report = await extractor.get_stealth_report()
-        print(f"Stealth Status: {stealth_report}")
-        
-        # Extract data from URLs
-        urls = [
-            "https://www.instagram.com/username/",  # Profile
-            "https://www.instagram.com/p/post_id/", # Post
-            "https://www.instagram.com/reel/reel_id/" # Reel
-        ]
-        
-        # Extract and save clean data
-        await extractor.extract_and_save_clean_data_from_urls(
-            urls, 
-            "instagram_final_output.json"
-        )
-        
-    finally:
-        await extractor.stop()
+    result = await scrape_instagram_urls(urls)
+    print(f"Success: {result['success']}")
+    print(f"Data entries: {len(result['data'])}")
 
-# Run the extraction
 asyncio.run(main())
 ```
 
-### Advanced Usage with Custom Anti-Detection
-
-```python
-import asyncio
-from src.advanced_graphql_extractor import AdvancedGraphQLExtractor
-
-async def advanced_extraction():
-    # Initialize with custom anti-detection settings
-    extractor = AdvancedGraphQLExtractor(
-        headless=False,  # Show browser for debugging
-        enable_anti_detection=True,
-        is_mobile=True  # Mobile mode
-    )
-    
-    try:
-        await extractor.start()
-        
-        # Get comprehensive stealth report
-        stealth_report = await extractor.get_stealth_report()
-        print("=== STEALTH REPORT ===")
-        print(f"Fingerprint Evasion: {stealth_report['fingerprint_evasion']['enabled']}")
-        print(f"Behavioral Mimicking: {stealth_report['behavioral_mimicking']['enabled']}")
-        print(f"Network Obfuscation: {stealth_report['network_obfuscation']['enabled']}")
-        
-        # Execute human-like behaviors
-        await extractor.execute_human_behavior('scroll', target_position=500, current_position=0)
-        await extractor.execute_human_behavior('mousemove', x=400, y=300)
-        
-        # Extract specific data types
-        profile_data = await extractor.extract_user_profile_data("username")
-        post_data = await extractor.extract_post_data("post_id")
-        reel_data = await extractor.extract_reel_data("reel_id")
-        
-        # Save detailed data
-        await extractor.save_scraped_data_to_json(
-            profile_data, post_data, reel_data, 
-            "detailed_scraped_data.json"
-        )
-        
-        # Save clean output
-        await extractor.save_clean_final_output(
-            profile_data, post_data, reel_data, 
-            "clean_final_output.json"
-        )
-        
-    finally:
-        await extractor.stop()
-
-asyncio.run(advanced_extraction())
+### Command Line Usage
+```bash
+python main.py
 ```
 
-### Complete Flow Testing
+## 📖 Usage Examples
 
+### Example 1: Simple One-Line Usage
 ```python
-import asyncio
-from test_complete_flow_anti_detection import extract_clean_data_with_anti_detection
+from main import scrape_instagram_urls
 
-# Test both desktop and mobile modes with anti-detection
-asyncio.run(extract_clean_data_with_anti_detection())
+urls = [
+    "https://www.instagram.com/90svogue.__",
+    "https://www.instagram.com/p/DMQMR4IzyJb/",
+    "https://www.instagram.com/reel/CSb6-Rap2Ip/"
+]
+
+result = await scrape_instagram_urls(urls)
 ```
 
-## 📊 Data Structure
+### Example 2: Custom Options
+```python
+result = await scrape_instagram_urls(
+    urls=urls,
+    headless=False,  # Show browser window
+    enable_anti_detection=True,
+    is_mobile=True,  # Use mobile mode
+    output_file="custom_output.json"
+)
+```
 
-### Profile Data
+### Example 3: Class-Based Usage
+```python
+from main import InstagramScraper
+
+scraper = InstagramScraper(
+    headless=True,
+    enable_anti_detection=True,
+    is_mobile=False,
+    output_file="class_output.json"
+)
+
+result = await scraper.scrape(urls)
+```
+
+### Example 4: Batch Processing
+```python
+# Large batch with error handling
+urls = [
+    "https://www.instagram.com/90svogue.__",
+    "https://www.instagram.com/p/DMQMR4IzyJb/",
+    "https://www.instagram.com/reel/CSb6-Rap2Ip/",
+    # ... more URLs
+]
+
+result = await scrape_instagram_urls(urls)
+
+# Check results
+if result['success']:
+    print(f"✅ All URLs processed successfully")
+    for entry in result['data']:
+        print(f"  - {entry['content_type']}: {entry.get('username', 'N/A')}")
+else:
+    print(f"❌ Some errors occurred: {len(result['errors'])}")
+```
+
+## 🔧 API Reference
+
+### Main Functions
+
+#### `scrape_instagram_urls(urls, headless=True, enable_anti_detection=True, is_mobile=False, output_file=None)`
+Convenience function for scraping Instagram URLs.
+
+**Parameters:**
+- `urls` (List[str]): List of Instagram URLs to scrape
+- `headless` (bool): Run browser in headless mode (default: True)
+- `enable_anti_detection` (bool): Enable anti-detection features (default: True)
+- `is_mobile` (bool): Use mobile user agent and viewport (default: False)
+- `output_file` (str, optional): File path to save results
+
+**Returns:**
+```python
+{
+    'success': bool,
+    'data': List[Dict],
+    'summary': Dict,
+    'errors': List[Dict],
+    'output_file': str,
+    'stealth_report': Dict
+}
+```
+
+#### `InstagramScraper` Class
+Main scraper class with comprehensive functionality.
+
+**Constructor:**
+```python
+InstagramScraper(
+    headless: bool = True,
+    enable_anti_detection: bool = True,
+    is_mobile: bool = False,
+    output_file: Optional[str] = None
+)
+```
+
+**Methods:**
+- `scrape(urls: List[str]) -> Dict[str, Any]`: Main scraping method with automatic profile discovery when processing article or video URLs, automatically extracts usernames and scrapes their profile data
+- `_determine_content_type_from_url(url: str, data: Dict[str, Any]) -> str`: Determine content type
+- `_format_count(count) -> str`: Format numbers to readable format
+
+### Advanced Components
+
+#### `AdvancedGraphQLExtractor` Class
+Handles advanced data extraction with network monitoring.
+
+**Key Methods:**
+- `extract_graphql_data(url: str) -> Dict[str, Any]`: Extract data from URL
+- `extract_user_profile_data(username: str) -> Dict[str, Any]`: Extract profile data
+- `extract_post_data(post_id: str) -> Dict[str, Any]`: Extract post data
+- `extract_reel_data(reel_id: str) -> Dict[str, Any]`: Extract reel data
+- `get_stealth_report() -> Dict[str, Any]`: Get stealth status report
+
+#### `BrowserManager` Class
+Manages browser automation with anti-detection features.
+
+**Key Methods:**
+- `navigate_to_with_popup_close(url: str) -> bool`: Navigate and handle popups
+- `get_page_content() -> str`: Get HTML content
+- `get_rendered_text() -> str`: Get rendered text
+- `execute_human_scroll(target_position: int) -> None`: Human-like scrolling
+- `execute_human_mouse_move(x: int, y: int) -> None`: Human-like mouse movement
+- `execute_human_click(x: int, y: int) -> None`: Human-like clicking
+
+#### `AntiDetectionManager` Class
+Comprehensive anti-detection system.
+
+**Key Methods:**
+- `generate_stealth_context_options(is_mobile: bool) -> Dict[str, Any]`: Generate stealth options
+- `generate_stealth_scripts() -> List[str]`: Generate stealth scripts
+- `generate_human_scroll_pattern(target_position: int) -> List[Dict[str, Any]]`: Human scroll patterns
+- `get_stealth_report() -> Dict[str, Any]`: Get comprehensive stealth report
+
+## ⚙️ Configuration
+
+### Anti-Detection Configuration
+```python
+# Enable/disable specific anti-detection features
+anti_detection = AntiDetectionManager(
+    enable_fingerprint_evasion=True,    # Browser fingerprint randomization
+    enable_behavioral_mimicking=True,   # Human-like behavior
+    enable_network_obfuscation=True     # Network request obfuscation
+)
+```
+
+### Browser Configuration
+```python
+# Browser manager options
+browser_manager = BrowserManager(
+    headless=True,                    # Run in background
+    enable_anti_detection=True,       # Enable stealth features
+    is_mobile=False                   # Desktop vs mobile mode
+)
+```
+
+### Human Behavior Profiles
+```python
+# Customize human behavior patterns
+human_profile = HumanBehaviorProfile(
+    scroll_speed_range=(0.5, 2.0),      # Scroll speed variation
+    mouse_speed_range=(100, 300),       # Mouse movement speed
+    click_delay_range=(0.1, 0.5),       # Click delay variation
+    pause_probability=0.15,             # Probability of pauses
+    hesitation_probability=0.25,        # Probability of hesitations
+    exploration_probability=0.1         # Probability of exploration
+)
+```
+
+## 🛡️ Anti-Detection System
+
+### Fingerprint Evasion
+The scraper implements comprehensive fingerprint evasion:
+
+- **Canvas Fingerprinting**: Randomizes canvas rendering
+- **WebGL Fingerprinting**: Modifies WebGL parameters
+- **Audio Fingerprinting**: Randomizes audio context
+- **Timezone Fingerprinting**: Uses realistic timezone data
+- **Locale Fingerprinting**: Simulates different locales
+- **Screen Fingerprinting**: Varies screen resolution and color depth
+- **Plugin Fingerprinting**: Randomizes plugin information
+- **Font Fingerprinting**: Varies available fonts
+- **Hardware Fingerprinting**: Modifies hardware concurrency
+
+### Behavioral Mimicking
+Human-like behavior simulation:
+
+- **Scrolling Patterns**: Variable speed with pauses and hesitations
+- **Mouse Movements**: Natural mouse movement curves
+- **Click Patterns**: Realistic click timing and positioning
+- **Page Interaction**: Random exploration and pauses
+- **Request Timing**: Human-like request spacing
+
+### Network Obfuscation
+Network request obfuscation:
+
+- **Request Spacing**: Variable delays between requests
+- **Jitter Factor**: Adds randomness to timing
+- **Connection Pooling**: Manages connection reuse
+- **Header Randomization**: Varies request headers
+- **User Agent Rotation**: Rotates user agents
+
+## 📊 Data Output Format
+
+### Profile Data Structure
 ```json
 {
   "url": "https://www.instagram.com/username/",
   "content_type": "profile",
   "full_name": "User Full Name",
   "username": "username",
-  "followers_count": "1.2M",
+  "followers_count": "1.2K",
   "following_count": "500",
-  "biography": "User bio text...",
-  "bio_links": [...],
+  "biography": "User biography text...",
+  "bio_links": ["https://example.com"],
   "is_private": false,
   "is_verified": true,
-  "is_business_account": true,
+  "is_business_account": false,
   "is_professional_account": true,
-  "business_email": "contact@business.com",
+  "business_email": "user@example.com",
   "business_phone_number": "+1234567890",
   "business_category_name": "Business Category"
 }
 ```
 
-### Post/Reel Data
+### Post/Reel Data Structure
 ```json
 {
   "url": "https://www.instagram.com/p/post_id/",
@@ -230,230 +335,221 @@ asyncio.run(extract_clean_data_with_anti_detection())
   "likes_count": "1.5K",
   "comments_count": "234",
   "username": "username",
-  "post_date": "January 15, 2024",
+  "post_date": "July 18, 2025",
   "caption": "Post caption text..."
 }
 ```
 
-## 🔧 Advanced Configuration
-
-### Anti-Detection Settings
-```python
-# Fingerprint Evasion
-fingerprint_evasion = {
-    'enabled': True,
-    'rotation_threshold': 15,  # Rotate every 15 requests
-    'hardware_correlation': True,
-    'geographic_logic': True
-}
-
-# Behavioral Mimicking
-behavioral_mimicking = {
-    'enabled': True,
-    'scroll_speed_range': (0.5, 2.0),
-    'mouse_speed_range': (100, 300),
-    'pause_probability': 0.15
-}
-
-# Network Obfuscation
-network_obfuscation = {
-    'enabled': True,
-    'request_spacing_range': (1.0, 3.0),
-    'jitter_factor': 0.3,
-    'backoff_factor': 1.5
+### Response Structure
+```json
+{
+  "success": true,
+  "data": [...],  // Array of extracted data
+  "summary": {
+    "total_original_urls": 3,
+    "additional_profiles_extracted": 2,
+    "total_extractions": 5,
+    "successful_extractions": 5,
+    "failed_extractions": 0,
+    "success_rate": 100.0,
+    "total_time_seconds": 45.2,
+    "average_time_per_url": 15.1,
+    "content_type_breakdown": {
+      "profile": 3,
+      "article": 1,
+      "video": 1
+    }
+  },
+  "errors": [],
+  "output_file": "output.json",
+  "stealth_report": {...}
 }
 ```
 
-### Browser Settings
-- **Headless Mode**: Set `headless=True` for faster execution, `False` for debugging
-- **Mobile Mode**: Set `is_mobile=True` for mobile user agents and viewports
-- **Stealth Features**: WebDriver masking, plugin simulation, language settings
-- **Hardware Profiles**: Low-end, mid-range, and high-end configurations
+## 🔍 Supported URL Types
 
-## 🚨 Anti-Detection Features
+### Profile URLs
+- `https://www.instagram.com/username/`
+- `https://www.instagram.com/username`
 
-### 1. Fingerprint Evasion
-- **Browser Fingerprinting Protection**:
-  - WebDriver property masking
-  - Canvas fingerprint randomization
-  - WebGL fingerprint evasion
-  - Plugin array simulation
-  - Hardware concurrency randomization
-  - Language preferences
-  - User agent rotation with geographic logic
+### Post URLs
+- `https://www.instagram.com/p/post_id/`
+- `https://www.instagram.com/p/post_id`
 
-### 2. Behavioral Mimicking
-- **Human-like Behavior**:
-  - Natural scrolling patterns with acceleration/deceleration
-  - Realistic mouse movements with jitter
-  - Random pauses and hesitations
-  - Exploration behavior simulation
-  - Click timing variations
+### Reel URLs
+- `https://www.instagram.com/reel/reel_id/`
+- `https://www.instagram.com/reel/reel_id`
 
-### 3. Network Obfuscation
-- **Request Patterns**:
-  - Variable request spacing with jitter
-  - Exponential backoff for high request counts
-  - Connection pooling and reuse
-  - Realistic browser headers
-  - Geographic header consistency
-
-### 4. Hardware Correlation
-- **Realistic Profiles**:
-  - Correlated CPU cores, memory, and screen resolution
-  - Geographic timezone and locale matching
-  - Platform-specific user agent selection
-  - Mobile device simulation
-
-## 📁 Output Files
-
-### 1. Clean Final Output (`instagram_final_output.json`)
-- Structured, clean data format
-- Formatted counts (1.2K, 1.5M)
-- Business information included
-- Ready for analysis
-
-### 2. Detailed Scraped Data (`scraped_data.json`)
-- Complete extraction metadata
-- Network analysis and stealth reports
-- Raw API responses
-- Success indicators
-- Missing data analysis
-
-### 3. Anti-Detection Reports
-- Fingerprint evasion status
-- Behavioral mimicking metrics
-- Network obfuscation statistics
-- Hardware correlation data
-
-## 🧪 Testing
-
-### Run Complete Flow Test
-```bash
-python test_complete_flow_anti_detection.py
-```
-
-### Test Individual Components
-```bash
-# Test browser manager
-python src/browser_manager.py
-
-# Test anti-detection system
-python src/anti_detection.py
-
-# Test advanced extractor
-python src/advanced_graphql_extractor.py
-```
-
-### Test Anti-Detection Features
-```bash
-# Test desktop mode
-python -c "import asyncio; from test_complete_flow_anti_detection import extract_clean_data_with_anti_detection; asyncio.run(extract_clean_data_with_anti_detection())"
-
-# Test mobile mode
-python -c "import asyncio; from test_complete_flow_anti_detection import extract_single_url_with_anti_detection; asyncio.run(extract_single_url_with_anti_detection())"
-```
-
-## ⚠️ Important Notes
-
-1. **Rate Limiting**: Instagram may rate-limit requests. The system includes automatic backoff.
-2. **Authentication**: Some content may require login for access.
-3. **Legal Compliance**: Ensure compliance with Instagram's Terms of Service.
-4. **Data Usage**: Respect user privacy and data protection regulations.
-5. **Anti-Detection**: The system is designed to be stealthy but may still be detected by advanced systems.
-
-## 🔍 Troubleshooting
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Browser Launch Failures**:
-   - Ensure Playwright is properly installed
-   - Check system dependencies
-   - Try running with `headless=False` for debugging
+#### Browser Launch Failures
+```bash
+# Install Playwright browsers
+playwright install chromium
 
-2. **Network Request Failures**:
-   - Check internet connection
-   - Verify URL format
-   - Instagram may block automated access
-   - Check anti-detection stealth report
+# Check system dependencies
+playwright install-deps
+```
 
-3. **Data Extraction Issues**:
-   - Instagram layout changes may affect selectors
-   - Popup handling may need updates
-   - Check for rate limiting
-   - Verify anti-detection is working
+#### Anti-Detection Issues
+```python
+# Disable anti-detection for debugging
+result = await scrape_instagram_urls(
+    urls=urls,
+    enable_anti_detection=False
+)
+```
+
+#### Network Timeouts
+```python
+# Increase timeout in browser manager
+browser_manager = BrowserManager(
+    headless=True,
+    enable_anti_detection=True
+)
+# Modify timeout settings in anti_detection.py
+```
+
+#### Memory Issues
+```python
+# Process URLs in smaller batches
+batch_size = 5
+for i in range(0, len(urls), batch_size):
+    batch = urls[i:i+batch_size]
+    result = await scrape_instagram_urls(batch)
+```
 
 ### Debug Mode
 ```python
-# Enable debug mode for troubleshooting
-extractor = AdvancedGraphQLExtractor(headless=False, enable_anti_detection=True)
-stealth_report = await extractor.get_stealth_report()
-print(f"Stealth Status: {stealth_report}")
+# Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Use non-headless mode for visual debugging
+result = await scrape_instagram_urls(
+    urls=urls,
+    headless=False
+)
 ```
 
-## 📈 Performance Tips
+### Error Handling
+```python
+try:
+    result = await scrape_instagram_urls(urls)
+    if result['success']:
+        print("✅ Scraping successful")
+    else:
+        print(f"❌ Errors: {len(result['errors'])}")
+        for error in result['errors']:
+            print(f"  - {error['url']}: {error['error']}")
+except Exception as e:
+    print(f"❌ Critical error: {e}")
+```
 
-1. **Batch Processing**: Process multiple URLs in sequence
-2. **Headless Mode**: Use `headless=True` for faster execution
-3. **Resource Management**: Always call `extractor.stop()` to clean up
-4. **Error Recovery**: Implement retry logic for failed extractions
-5. **Anti-Detection**: Monitor stealth reports for optimal performance
+## 📈 Performance Optimization
+
+### Batch Processing
+```python
+# Process large datasets efficiently
+async def process_large_dataset(urls, batch_size=10):
+    results = []
+    for i in range(0, len(urls), batch_size):
+        batch = urls[i:i+batch_size]
+        result = await scrape_instagram_urls(batch)
+        results.extend(result['data'])
+    return results
+```
+
+### Memory Management
+```python
+# Clean up resources after processing
+scraper = InstagramScraper()
+try:
+    result = await scraper.scrape(urls)
+finally:
+    await scraper.extractor.stop()
+```
+
+### Caching
+```python
+# Implement caching for repeated requests
+import json
+import os
+
+def load_cached_data(username):
+    cache_file = f"cache/{username}.json"
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r') as f:
+            return json.load(f)
+    return None
+
+def save_cached_data(username, data):
+    os.makedirs("cache", exist_ok=True)
+    cache_file = f"cache/{username}.json"
+    with open(cache_file, 'w') as f:
+        json.dump(data, f)
+```
 
 ## 🤝 Contributing
 
+### Development Setup
+```bash
+# Clone repository
+git clone <repository-url>
+cd insta-scraper
+
+# Create development environment
+python -m venv dev-env
+source dev-env/bin/activate
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+python -m pytest tests/
+```
+
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints
+- Add docstrings for all functions
+- Write unit tests for new features
+
+### Pull Request Process
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Add tests
+5. Update documentation
+6. Submit a pull request
 
 ## 📄 License
 
-This project is for educational purposes. Please ensure compliance with Instagram's Terms of Service and applicable laws.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Dependencies
+## ⚠️ Disclaimer
 
-- `playwright`: Advanced browser automation
-- `beautifulsoup4`: HTML parsing
-- `fake-useragent`: User agent rotation
-- `aiohttp`: Async HTTP client
-- `zstandard`: Compression handling
-- `asyncio`: Async programming support
+This tool is for educational and research purposes only. Please respect Instagram's Terms of Service and rate limits. The authors are not responsible for any misuse of this tool.
 
-## 🎯 System Capabilities
+## 🆘 Support
 
-### Extraction Success Rates
-- **Profile Data**: 95%+ success rate with anti-detection
-- **Post Data**: 90%+ success rate with meta tag fallback
-- **Reel Data**: 85%+ success rate with video detection
-- **Business Data**: 80%+ success rate with email extraction
+### Issues
+- Check the [troubleshooting section](#troubleshooting)
+- Search existing [issues](../../issues)
+- Create a new issue with detailed information
 
-### Anti-Detection Effectiveness
-- **Fingerprint Evasion**: 95%+ effectiveness
-- **Behavioral Mimicking**: 90%+ human-like patterns
-- **Network Obfuscation**: 85%+ request pattern masking
-- **Hardware Correlation**: 90%+ realistic profiles
+### Documentation
+- Review the [API reference](#api-reference)
+- Check [example usage](#usage-examples)
+- Read the [configuration guide](#configuration)
 
-## 🔄 Recent Updates
-
-### Username Extraction Improvements
-- **Fixed username extraction priority**: Script data → Twitter title → OG description → OG title
-- **Enhanced regex patterns**: Better handling of international formats (e.g., "el" for Spanish)
-- **Improved accuracy**: Correct username extraction from multiple sources
-- **Fallback mechanisms**: Robust fallback when primary sources fail
-
-### Data Processing Enhancements
-- **URL construction fixes**: Proper shortcode extraction from original URLs
-- **Content type detection**: Improved classification for posts, reels, and profiles
-- **Business field handling**: Always include business fields even when null
-- **Data validation**: Enhanced validation and error handling
-
-### Anti-Detection Improvements
-- **Enhanced fingerprint rotation**: Automatic rotation based on session metrics
-- **Improved behavioral patterns**: More realistic human-like interactions
-- **Better network obfuscation**: Advanced request spacing and timing
-- **Geographic consistency**: Improved timezone and locale matching
+### Community
+- Join discussions in [GitHub Discussions](../../discussions)
+- Share your use cases and improvements
+- Report bugs and request features
 
 ---
 
-**Disclaimer**: This tool is for educational and research purposes. Users are responsible for complying with Instagram's Terms of Service and applicable laws regarding web scraping and data collection. The anti-detection features are designed to respect rate limits and avoid overwhelming servers. 
+**Note**: This scraper is designed to be respectful of Instagram's infrastructure. Please use responsibly and consider implementing appropriate delays between requests to avoid overwhelming their servers. 
