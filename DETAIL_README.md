@@ -517,9 +517,10 @@ elif content_type in ["article", "video"]:
     clean_entry.update({
         "likes_count": self._format_count(meta_data.get('likes_count') or script_data.get('likes')),
         "comments_count": self._format_count(meta_data.get('comments_count') or script_data.get('comments')),
-        "username": (meta_data.get('username') or 
-                   meta_data.get('username_from_title') or
-                   script_data.get('username')),
+        "username": (script_data.get('username') or
+                   meta_data.get('username_from_twitter') or
+                   meta_data.get('username') or 
+                   meta_data.get('username_from_title')),
         "post_date": meta_data.get('post_date'),
         "caption": (meta_data.get('caption') or script_data.get('caption'))
     })
@@ -952,6 +953,141 @@ The system extracts data from multiple sources to ensure comprehensive coverage:
 **Format Consistency**: Ensure consistent output formatting
 **Field Coverage**: Track field extraction success rates
 
+## Recent System Enhancements
+
+### 1. Username Extraction Improvements
+
+**Enhanced Priority System**:
+```python
+# New username extraction priority order
+"username": (script_data.get('username') or
+           meta_data.get('username_from_twitter') or
+           meta_data.get('username') or 
+           meta_data.get('username_from_title'))
+```
+
+**Improved Regex Patterns**:
+```python
+# Enhanced regex for international formats
+username_match = re.search(r'- ([a-zA-Z0-9._]+)\s+(?:el|on)\s+', description)
+
+# Twitter title extraction
+username_match = re.search(r'\(@([a-zA-Z0-9._]+)\)\s*•\s*Instagram', twitter_title)
+
+# OG title extraction (more specific)
+username_match = re.search(r'\(@([a-zA-Z0-9._]+)\)\s*•\s*Instagram', og_title)
+```
+
+**Multi-Source Fallback**:
+- **Primary**: Script data username (most reliable)
+- **Secondary**: Twitter title username (consistent format)
+- **Tertiary**: OG description username (international support)
+- **Quaternary**: OG title username (least reliable)
+
+### 2. Data Processing Enhancements
+
+**URL Construction Fixes**:
+```python
+# Improved shortcode extraction
+shortcode = post_data.get('meta_data', {}).get('shortcode')
+if not shortcode and post_data.get('url'):
+    import re
+    url_match = re.search(r'instagram\.com/p/([^/?]+)', post_data.get('url'))
+    if url_match:
+        shortcode = url_match.group(1)
+```
+
+**Content Type Detection**:
+```python
+def _determine_content_type_from_url(self, url: str, data: Dict[str, Any]) -> str:
+    if '/reel/' in url:
+        return "video"
+    elif '/p/' in url:
+        # Check if it's actually a video post
+        if (data.get('meta_data', {}).get('content_type') == 'video' or
+            data.get('script_data', {}).get('is_video') or
+            data.get('script_data', {}).get('video_url')):
+            return "video"
+        else:
+            return "article"
+    else:
+        return "profile"
+```
+
+**Business Field Handling**:
+```python
+# Always include business fields, even if null
+business_fields = ['business_email', 'business_phone_number', 'business_category_name']
+for field in business_fields:
+    if field not in clean_entry:
+        clean_entry[field] = None
+    elif clean_entry[field] == '':
+        clean_entry[field] = None
+```
+
+### 3. Anti-Detection Improvements
+
+**Enhanced Fingerprint Rotation**:
+```python
+async def should_rotate_fingerprint(self) -> bool:
+    current_time = time.time()
+    session_duration = current_time - self.behavioral_state.get('last_action_time', current_time)
+    
+    # Rotate if session is too long or too many requests
+    if (session_duration > 300 or  # 5 minutes
+        self.network_state.get('request_count', 0) > 50 or  # 50 requests
+        self.network_state.get('connection_errors', 0) > 5):  # 5 errors
+        return True
+    
+    return False
+```
+
+**Improved Behavioral Patterns**:
+- More realistic human-like interactions
+- Enhanced scroll patterns with acceleration/deceleration
+- Better mouse movement trajectories
+- Improved click timing variations
+
+**Advanced Network Obfuscation**:
+- Variable request spacing with jitter
+- Exponential backoff for high request counts
+- Geographic header consistency
+- Connection pooling and reuse
+
+### 4. Data Validation and Error Handling
+
+**Enhanced Error Recovery**:
+```python
+# Graceful handling of missing data
+if extracted_data.get('error'):
+    print(f"❌ Failed to extract data from {url}: {extracted_data['error']}")
+    continue
+
+# Fallback mechanisms for failed extractions
+if not user_data.get('username'):
+    # Fallback to GraphQL responses
+    for url, response in getattr(self, 'graphql_responses', {}).items():
+        if 'data' in response and 'user' in response.get('data', {}):
+            user_info = response.get('data', {}).get('user', {})
+            if user_info and user_info.get('username'):
+                user_data.update({...})
+                break
+```
+
+**Data Quality Assessment**:
+- Success indicators for each data type
+- Missing data analysis and reporting
+- Field coverage tracking
+- Accuracy validation metrics
+
 ## Conclusion
 
-The Advanced GraphQL Extractor provides a comprehensive, robust, and stealthy solution for Instagram data extraction. The system's layered architecture ensures efficient data processing while maintaining high security and anti-detection standards. The integration of multiple data sources, advanced anti-detection features, and comprehensive error handling makes it a reliable tool for extracting Instagram data in a clean, structured format suitable for further processing and analysis. 
+The Advanced GraphQL Extractor provides a comprehensive, robust, and stealthy solution for Instagram data extraction. The system's layered architecture ensures efficient data processing while maintaining high security and anti-detection standards. The integration of multiple data sources, advanced anti-detection features, and comprehensive error handling makes it a reliable tool for extracting Instagram data in a clean, structured format suitable for further processing and analysis.
+
+The recent enhancements have significantly improved:
+- **Username extraction accuracy** through multi-source prioritization
+- **Data processing reliability** with enhanced fallback mechanisms
+- **Anti-detection effectiveness** with improved behavioral patterns
+- **System resilience** through better error handling and recovery
+
+These improvements ensure the system remains effective and reliable for Instagram data extraction while maintaining high standards of stealth and data quality. 

@@ -353,7 +353,9 @@ class AdvancedGraphQLExtractor:
                 enhanced_data['comments_count'] = comments_match.group(1)
             
             # Extract username
-            username_match = re.search(r'- (\w+) on', description)
+            # Pattern: "87 likes, 45 comments - travelsapiens.in el July 18, 2025"
+            # or "76K likes, 7,967 comments - realdonaldtrump on July 29, 2025"
+            username_match = re.search(r'- ([a-zA-Z0-9._]+)\s+(?:el|on)\s+', description)
             if username_match:
                 enhanced_data['username'] = username_match.group(1)
             
@@ -365,11 +367,12 @@ class AdvancedGraphQLExtractor:
         # Extract data from Open Graph
         og_data = meta_data.get('open_graph', {})
         
-        # Extract username from og:title
+        # Extract username from og:title (more specific pattern)
         og_title = og_data.get('og:title', '')
         if og_title:
-            # Pattern: "President Donald J. Trump (@realdonaldtrump) • Instagram photo"
-            username_match = re.search(r'@(\w+)', og_title)
+            # Pattern: "Awesome Himachal (@awesomehimachal) • Instagram video"
+            # Look for username in parentheses before "• Instagram"
+            username_match = re.search(r'\(@([a-zA-Z0-9._]+)\)\s*•\s*Instagram', og_title)
             if username_match:
                 enhanced_data['username_from_title'] = username_match.group(1)
             
@@ -377,6 +380,14 @@ class AdvancedGraphQLExtractor:
             full_name_match = re.search(r'^([^@]+?)\s*\(@', og_title)
             if full_name_match:
                 enhanced_data['full_name'] = full_name_match.group(1).strip()
+        
+        # Extract username from Twitter title (more reliable)
+        twitter_title = meta_data.get('twitter:title', '')
+        if twitter_title:
+            # Pattern: "Awesome Himachal (@awesomehimachal) • Instagram video"
+            username_match = re.search(r'\(@([a-zA-Z0-9._]+)\)\s*•\s*Instagram', twitter_title)
+            if username_match:
+                enhanced_data['username_from_twitter'] = username_match.group(1)
         
         # Extract post/reel type from og:type
         og_type = og_data.get('og:type', '')
@@ -874,7 +885,15 @@ class AdvancedGraphQLExtractor:
         
         # Process post data
         if post_data and not post_data.get('error'):
-            post_url = f"https://www.instagram.com/p/{post_data.get('meta_data', {}).get('shortcode', 'unknown')}/"
+            # Try to get shortcode from metadata, otherwise extract from original URL
+            shortcode = post_data.get('meta_data', {}).get('shortcode')
+            if not shortcode and post_data.get('url'):
+                import re
+                url_match = re.search(r'instagram\.com/p/([^/?]+)', post_data.get('url'))
+                if url_match:
+                    shortcode = url_match.group(1)
+            
+            post_url = f"https://www.instagram.com/p/{shortcode or 'unknown'}/"
             content_type = self._determine_content_type(post_data)
             
             post_entry = {
@@ -882,9 +901,10 @@ class AdvancedGraphQLExtractor:
                 "content_type": content_type,
                 "likes_count": self._format_count(post_data.get('meta_data', {}).get('likes_count') or post_data.get('script_data', {}).get('likes')),
                 "comments_count": self._format_count(post_data.get('meta_data', {}).get('comments_count') or post_data.get('script_data', {}).get('comments')),
-                "username": (post_data.get('meta_data', {}).get('username') or 
-                           post_data.get('meta_data', {}).get('username_from_title') or
-                           post_data.get('script_data', {}).get('username')),
+                "username": (post_data.get('script_data', {}).get('username') or
+                           post_data.get('meta_data', {}).get('username_from_twitter') or
+                           post_data.get('meta_data', {}).get('username') or 
+                           post_data.get('meta_data', {}).get('username_from_title')),
                 "post_date": post_data.get('meta_data', {}).get('post_date'),
                 "caption": (post_data.get('meta_data', {}).get('caption') or 
                           post_data.get('script_data', {}).get('caption'))
@@ -896,7 +916,15 @@ class AdvancedGraphQLExtractor:
         
         # Process reel data
         if reel_data and not reel_data.get('error'):
-            reel_url = f"https://www.instagram.com/reel/{reel_data.get('meta_data', {}).get('shortcode', 'unknown')}/"
+            # Try to get shortcode from metadata, otherwise extract from original URL
+            shortcode = reel_data.get('meta_data', {}).get('shortcode')
+            if not shortcode and reel_data.get('url'):
+                import re
+                url_match = re.search(r'instagram\.com/reel/([^/?]+)', reel_data.get('url'))
+                if url_match:
+                    shortcode = url_match.group(1)
+            
+            reel_url = f"https://www.instagram.com/reel/{shortcode or 'unknown'}/"
             content_type = "video"  # Reels are always videos
             
             reel_entry = {
@@ -904,9 +932,10 @@ class AdvancedGraphQLExtractor:
                 "content_type": content_type,
                 "likes_count": self._format_count(reel_data.get('meta_data', {}).get('likes_count') or reel_data.get('script_data', {}).get('likes')),
                 "comments_count": self._format_count(reel_data.get('meta_data', {}).get('comments_count') or reel_data.get('script_data', {}).get('comments')),
-                "username": (reel_data.get('meta_data', {}).get('username') or 
-                           reel_data.get('meta_data', {}).get('username_from_title') or
-                           reel_data.get('script_data', {}).get('username')),
+                "username": (reel_data.get('script_data', {}).get('username') or
+                           reel_data.get('meta_data', {}).get('username_from_twitter') or
+                           reel_data.get('meta_data', {}).get('username') or 
+                           reel_data.get('meta_data', {}).get('username_from_title')),
                 "post_date": reel_data.get('meta_data', {}).get('post_date'),
                 "caption": (reel_data.get('meta_data', {}).get('caption') or 
                           reel_data.get('script_data', {}).get('caption'))
@@ -1021,9 +1050,10 @@ class AdvancedGraphQLExtractor:
                     clean_entry.update({
                         "likes_count": self._format_count(meta_data.get('likes_count') or script_data.get('likes')),
                         "comments_count": self._format_count(meta_data.get('comments_count') or script_data.get('comments')),
-                        "username": (meta_data.get('username') or 
-                                   meta_data.get('username_from_title') or
-                                   script_data.get('username')),
+                        "username": (script_data.get('username') or
+                                   meta_data.get('username_from_twitter') or
+                                   meta_data.get('username') or 
+                                   meta_data.get('username_from_title')),
                         "post_date": meta_data.get('post_date'),
                         "caption": (meta_data.get('caption') or script_data.get('caption'))
                     })
@@ -1113,17 +1143,6 @@ async def test_advanced_graphql_extractor():
         print(f"  - Fingerprint Evasion: {stealth_report.get('fingerprint_evasion', {}).get('enabled', False)}")
         print(f"  - Behavioral Mimicking: {stealth_report.get('behavioral_mimicking', {}).get('enabled', False)}")
         print(f"  - Network Obfuscation: {stealth_report.get('network_obfuscation', {}).get('enabled', False)}")
-        
-        # Test human-like behavior
-        print("\nTesting human-like behavior...")
-        await extractor.execute_human_behavior('scroll', target_position=500, current_position=0)
-        print("✓ Human-like scroll executed")
-        
-        await extractor.execute_human_behavior('mousemove', x=400, y=300)
-        print("✓ Human-like mouse movement executed")
-        
-        await extractor.execute_human_behavior('click', x=200, y=150)
-        print("✓ Human-like click executed")
         
         # Test 1: Extract user profile data
         print("\n" + "=" * 60)

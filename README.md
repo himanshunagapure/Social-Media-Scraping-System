@@ -434,6 +434,26 @@ This project is for educational purposes. Please ensure compliance with Instagra
 - **Network Obfuscation**: 85%+ request pattern masking
 - **Hardware Correlation**: 90%+ realistic profiles
 
+## 🔄 Recent Updates
+
+### Username Extraction Improvements
+- **Fixed username extraction priority**: Script data → Twitter title → OG description → OG title
+- **Enhanced regex patterns**: Better handling of international formats (e.g., "el" for Spanish)
+- **Improved accuracy**: Correct username extraction from multiple sources
+- **Fallback mechanisms**: Robust fallback when primary sources fail
+
+### Data Processing Enhancements
+- **URL construction fixes**: Proper shortcode extraction from original URLs
+- **Content type detection**: Improved classification for posts, reels, and profiles
+- **Business field handling**: Always include business fields even when null
+- **Data validation**: Enhanced validation and error handling
+
+### Anti-Detection Improvements
+- **Enhanced fingerprint rotation**: Automatic rotation based on session metrics
+- **Improved behavioral patterns**: More realistic human-like interactions
+- **Better network obfuscation**: Advanced request spacing and timing
+- **Geographic consistency**: Improved timezone and locale matching
+
 ---
 
 **Disclaimer**: This tool is for educational and research purposes. Users are responsible for complying with Instagram's Terms of Service and applicable laws regarding web scraping and data collection. The anti-detection features are designed to respect rate limits and avoid overwhelming servers. 
